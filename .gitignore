@@ -9,3 +9,7 @@ Release/
 vault/
 *.quantum
 quantum_vault.json
+.env
+__pycache__/
+*.pyc
+vault/
