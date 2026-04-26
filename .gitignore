@@ -5,3 +5,7 @@ __pycache__/
 .settings/
 Debug/
 Release/
+# Quantum Vault Private Data
+vault/
+*.quantum
+quantum_vault.json

@@ -1,3 +1,8 @@
+## Version 2.0: Quantum Lockbox
+- **Feature:** Hardware-encrypted file vaulting.
+- **Security:** Uses 256-bit AES keys seeded by live Zener noise ($2^{256}$ complexity).
+- **Workflow:** Sender locks a file using `quantum_vault.py`, receiver unlocks using `receiver_decrypt.py` + shared Key ID.
+
 # Quantum Random Number Generator (v1.0)
 A hardware-based TRNG using Zener avalanche noise, processed via STM32, and validated for cryptographic use.
 
