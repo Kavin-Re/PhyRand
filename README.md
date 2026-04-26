@@ -1,4 +1,4 @@
-k# SECURE EXCHANGE (v4.0)
+# SECURE EXCHANGE (v4.0)
 
 This major update transitions the project from a terminal-based tool to a unified web appliance.
 
@@ -10,7 +10,7 @@ This major update transitions the project from a terminal-based tool to a unifie
 
 ### Hardware-Verified Entropy Pipeline
 - Real-Time Heartbeat: The dashboard features a live hardware status monitor and entropy seed preview sourced directly from the STM32 serial stream.
-- Quantum-Seeded Identifiers: File IDs and encryption keys are generated using the hardware entropy source, ensuring cryptographic-grade randomness for every session.
+- Quantum Seeded Identifiers: File IDs and encryption keys are generated using the hardware entropy source, ensuring cryptographic-grade randomness for every session.
 
 ### Advanced Binary Vaulting
 - Local Client-Side Encryption: Encryption and decryption logic now occurs in the browser. Plaintext data remains local, while the server only manages hardware keys and metadata.
