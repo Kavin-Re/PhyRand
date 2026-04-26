@@ -1,68 +1,85 @@
-import serial
-import base64
-import os
-import json
-import uvicorn
-from fastapi import FastAPI, HTTPException, Header
+import serial, base64, os, json, uvicorn
+from fastapi import FastAPI, HTTPException, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 
-# Load secrets from .env
 load_dotenv()
+app = FastAPI(title="Secure Exchange v4.0")
 
-app = FastAPI(title="Quantum QRNG Web Portal v3.2")
-
-# --- CONFIGURATION ---
 SERIAL_PORT = os.getenv("QRNG_SERIAL_PORT", "/dev/quantum_qrng")
 MASTER_TOKEN = os.getenv("VAULT_MASTER_TOKEN")
 VAULT_DB = "vault/quantum_vault.json"
 
-# --- MIDDLEWARE: ENABLE CORS ---
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-def get_live_entropy(n=32):
+def get_hardware_entropy(n=32):
     try:
-        with serial.Serial(SERIAL_PORT, 115200, timeout=5) as ser:
+        with serial.Serial(SERIAL_PORT, 115200, timeout=2) as ser:
             ser.reset_input_buffer()
             data = ser.read(n)
             return data if len(data) == n else None
-    except Exception:
-        return None
-
-# --- WEB ROUTES ---
+    except: return None
 
 @app.get("/")
-async def serve_portal():
-    return FileResponse('static/index.html')
+async def serve_dashboard(): return FileResponse('static/index.html')
+
+@app.get("/heartbeat")
+def hardware_status():
+    sample = get_hardware_entropy(4)
+    return {"status": "ONLINE" if sample else "OFFLINE", "sample": sample.hex() if sample else None}
 
 @app.get("/stats")
-def hardware_stats():
-    sample = get_live_entropy(4)
-    return {"hardware": "Healthy" if sample else "Offline", "entropy": sample.hex() if sample else None}
+def get_system_stats(x_api_token: str = Header(None)):
+    if x_api_token != MASTER_TOKEN: raise HTTPException(status_code=401)
+    sample = get_hardware_entropy(8)
+    count = 0
+    if os.path.exists(VAULT_DB):
+        with open(VAULT_DB, "r") as f: count = len(json.load(f))
+    return {"build": "v4.0-Production", "hardware": "ONLINE" if sample else "OFFLINE", "vault_records": count}
+
+@app.get("/request-keys")
+def request_keys(x_api_token: str = Header(None)):
+    if x_api_token != MASTER_TOKEN: raise HTTPException(status_code=401)
+    entropy = get_hardware_entropy(32)
+    if not entropy: raise HTTPException(status_code=503)
+    new_id = base64.b32encode(os.urandom(5)).decode()[:6].upper()
+    new_key = base64.urlsafe_b64encode(entropy).decode()
+    return {"file_id": new_id, "key": new_key}
+
+@app.post("/vault/commit")
+def commit_record(data: dict = Body(...), x_api_token: str = Header(None)):
+    if x_api_token != MASTER_TOKEN: raise HTTPException(status_code=401)
+    if not os.path.exists("vault"): os.mkdir("vault")
+    vault = {}
+    if os.path.exists(VAULT_DB):
+        with open(VAULT_DB, "r") as f: vault = json.load(f)
+    file_id = data.get("file_id")
+    vault[file_id] = {"key": data.get("key"), "extension": data.get("extension"), "timestamp": data.get("timestamp")}
+    with open(VAULT_DB, "w") as f: json.dump(vault, f, indent=4)
+    return {"status": "success"}
+
+@app.get("/vault/list")
+def list_records(x_api_token: str = Header(None)):
+    if x_api_token != MASTER_TOKEN: raise HTTPException(status_code=401)
+    if not os.path.exists(VAULT_DB): return {}
+    with open(VAULT_DB, "r") as f: return json.load(f)
+
+@app.delete("/vault/revoke/{file_id}")
+def revoke_record(file_id: str, x_api_token: str = Header(None)):
+    if x_api_token != MASTER_TOKEN: raise HTTPException(status_code=401)
+    with open(VAULT_DB, "r") as f: vault = json.load(f)
+    if file_id.upper() in vault:
+        del vault[file_id.upper()]
+        with open(VAULT_DB, "w") as f: json.dump(vault, f, indent=4)
+        return {"status": "revoked"}
+    raise HTTPException(status_code=404)
 
 @app.get("/release/{file_id}")
-def release_key(file_id: str, x_api_token: str = Header(None)):
-    if not MASTER_TOKEN or x_api_token != MASTER_TOKEN:
-        raise HTTPException(status_code=401, detail="Unauthorized Handshake")
-    
-    if not os.path.exists(VAULT_DB):
-        raise HTTPException(status_code=500, detail="Vault database missing")
-        
-    with open(VAULT_DB, "r") as f:
-        vault = json.load(f)
-    
-    clean_id = file_id.strip().upper()
-    if clean_id in vault:
-        return {"file_id": clean_id, "key": vault[clean_id]["quantum_key"], "status": "Success"}
-    
-    raise HTTPException(status_code=404, detail="File ID not found")
+def release_metadata(file_id: str, x_api_token: str = Header(None)):
+    if x_api_token != MASTER_TOKEN: raise HTTPException(status_code=401)
+    with open(VAULT_DB, "r") as f: vault = json.load(f)
+    if file_id.upper() in vault: return vault[file_id.upper()]
+    raise HTTPException(status_code=404)
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+if __name__ == "__main__": uvicorn.run(app, host="0.0.0.0", port=8000)
