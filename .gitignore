@@ -1,0 +1,7 @@
+qrng_env/
+__pycache__/
+*.py[cod]
+*.bin
+.settings/
+Debug/
+Release/
