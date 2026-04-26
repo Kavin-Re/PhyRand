@@ -1,71 +1,121 @@
-<!DOCTYPE html>
+kk<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quantum Vault | Web Portal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #c9d1d9; --accent: #238636; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 2rem; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: white; }
-        p { font-size: 0.9rem; color: #8b949e; margin-bottom: 1.5rem; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 2rem; border-radius: 8px; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { font-size: 1.5rem; color: white; margin-bottom: 0.5rem; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #8b949e; }
         input { width: 100%; padding: 12px; margin-bottom: 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: white; font-family: monospace; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { background: #2ea043; }
-        #status { margin-top: 1.5rem; padding: 1rem; border-radius: 6px; display: none; font-size: 0.85rem; word-break: break-all; }
+        #status { margin-top: 1.5rem; padding: 1rem; border-radius: 6px; display: none; font-size: 0.85rem; }
         .success { background: rgba(35, 134, 54, 0.15); border: 1px solid var(--accent); color: #3fb950; }
         .error { background: rgba(248, 81, 73, 0.15); border: 1px solid #f85149; color: #f85149; }
+        #decryptSection { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>🔒 Quantum Unlocker</h1>
-    <p>Hardware-authenticated key retrieval via STM32 entropy.</p>
-    
-    <label>File Identifier</label>
-    <input type="text" id="fileId" placeholder="E.g. 4E45CA" autocomplete="off">
-    
-    <label>Access Token</label>
-    <input type="password" id="apiToken" placeholder="Enter Master Token" autocomplete="off">
-    
-    <button onclick="handleRequest()">Request Key</button>
+    <div id="handshakeSection">
+        <label>File Identifier</label>
+        <input type="text" id="fileId" placeholder="E.g. 4E45CA">
+        <label>Access Token</label>
+        <input type="password" id="apiToken" placeholder="Enter Master Token">
+        <button onclick="handleHandshake()">Verify Handshake</button>
+    </div>
 
     <div id="status"></div>
+
+    <div id="decryptSection">
+        <label>Step 2: Upload Encrypted File (.quantum)</label>
+        <input type="file" id="filePicker">
+        <button onclick="decryptFile()">Decrypt & Download</button>
+    </div>
 </div>
 
 <script>
-    async function handleRequest() {
+    let activeKey = null;
+
+    function b64url_to_b64(str) { return str.replace(/-/g, '+').replace(/_/g, '/'); }
+
+    async function handleHandshake() {
         const fileId = document.getElementById('fileId').value.trim().toUpperCase();
         const token = document.getElementById('apiToken').value.trim();
         const statusBox = document.getElementById('status');
-
-        if (!fileId || !token) { alert("Please fill in both fields."); return; }
-
-        statusBox.style.display = 'block';
-        statusBox.className = '';
-        statusBox.innerText = "Querying Quantum Authority...";
+        statusBox.style.display = 'block'; statusBox.className = ''; statusBox.innerText = "Verifying Handshake...";
 
         try {
-            const response = await fetch(`/release/${fileId}`, {
-                headers: { 'x-api-token': token }
-            });
+            const response = await fetch(`/release/${fileId}`, { headers: { 'x-api-token': token } });
             const data = await response.json();
-
             if (response.ok) {
-                statusBox.className = 'success';
-                statusBox.innerHTML = `<strong>Handshake Verified</strong><br><br>Your Key:<br><code style="background:#000; padding:4px;">${data.key}</code>`;
+                activeKey = data.key;
+                statusBox.className = 'success'; statusBox.innerText = "✅ Handshake Verified. Key Loaded.";
+                document.getElementById('decryptSection').style.display = 'block';
+                document.getElementById('handshakeSection').style.display = 'none';
             } else {
-                statusBox.className = 'error';
-                statusBox.innerText = data.detail || "Error: Unauthorized access.";
+                statusBox.className = 'error'; statusBox.innerText = data.detail || "Access Denied.";
             }
-        } catch (err) {
-            statusBox.className = 'error';
-            statusBox.innerText = "Connection failed. Ensure the server is online.";
-        }
+        } catch (err) { statusBox.className = 'error'; statusBox.innerText = "Connection Failed."; }
+    }
+
+    function decryptFile() {
+        const fileInput = document.getElementById('filePicker');
+        if (!fileInput.files[0]) return;
+        
+        const reader = new FileReader();
+        reader.onload = function() {
+            try {
+                // 1. Process Key and Token as Hex
+                const rawToken = reader.result.trim();
+                const tokenHex = CryptoJS.enc.Base64.parse(b64url_to_b64(rawToken)).toString(CryptoJS.enc.Hex);
+                const keyHex = CryptoJS.enc.Base64.parse(b64url_to_b64(activeKey)).toString(CryptoJS.enc.Hex);
+                
+                const encryptionKeyHex = keyHex.substring(32, 64);
+                const ivHex = tokenHex.substring(18, 50);
+                const ciphertextHex = tokenHex.substring(50, tokenHex.length - 64);
+
+                // 2. AES-128-CBC Decryption
+                const decrypted = CryptoJS.AES.decrypt(
+                    { ciphertext: CryptoJS.enc.Hex.parse(ciphertextHex) },
+                    CryptoJS.enc.Hex.parse(encryptionKeyHex),
+                    { iv: CryptoJS.enc.Hex.parse(ivHex), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+                );
+
+                // 3. --- UNIVERSAL BINARY CONVERSION ---
+                const sigBytes = decrypted.sigBytes;
+                const words = decrypted.words;
+                const resultBytes = new Uint8Array(sigBytes);
+                for (let i = 0; i < sigBytes; i++) {
+                    resultBytes[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+                }
+
+                if (resultBytes.length === 0) throw new Error("Decryption failed: No data recovered.");
+
+                // 4. Download as a generic binary stream
+                const blob = new Blob([resultBytes], { type: "application/octet-stream" });
+                const a = document.createElement("a");
+                a.href = window.URL.createObjectURL(blob);
+                
+                // Generic name - you will need to rename to .jpg/.mp4 after download
+                a.download = "decrypted_file.bin"; 
+                a.click();
+                alert("Success! The binary file has been unlocked.");
+                
+            } catch (e) { 
+                alert("Decryption Error: Ensure the ID matches this file."); 
+                console.error(e);
+            }
+        };
+        reader.readAsText(fileInput.files[0]);
     }
 </script>
-
 </body>
 </html>

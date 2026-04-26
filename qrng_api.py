@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 
-# Load configuration
+# Load secrets from .env
 load_dotenv()
 
 app = FastAPI(title="Quantum QRNG Web Portal v3.2")
@@ -20,7 +20,6 @@ MASTER_TOKEN = os.getenv("VAULT_MASTER_TOKEN")
 VAULT_DB = "vault/quantum_vault.json"
 
 # --- MIDDLEWARE: ENABLE CORS ---
-# Required for browsers to talk to the API across different domains (Ngrok)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -41,7 +40,6 @@ def get_live_entropy(n=32):
 
 @app.get("/")
 async def serve_portal():
-    """Serves the main web interface."""
     return FileResponse('static/index.html')
 
 @app.get("/stats")
@@ -51,7 +49,6 @@ def hardware_stats():
 
 @app.get("/release/{file_id}")
 def release_key(file_id: str, x_api_token: str = Header(None)):
-    """Secure key release for the Web Portal."""
     if not MASTER_TOKEN or x_api_token != MASTER_TOKEN:
         raise HTTPException(status_code=401, detail="Unauthorized Handshake")
     
