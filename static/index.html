@@ -7,40 +7,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #030712; --glass: rgba(17, 24, 39, 0.7); --border: rgba(255, 255, 255, 0.1);
-            --accent: #10b981; --purple: #8b5cf6; --red: #ef4444; --text-dim: #9ca3af;
-        }
-        body { font-family: 'Inter', sans-serif; background: radial-gradient(circle at top right, #1e1b4b, #030712); color: white; min-height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        :root { --bg: #030712; --glass: rgba(17, 24, 39, 0.7); --border: rgba(255, 255, 255, 0.1); --accent: #10b981; --purple: #8b5cf6; --red: #ef4444; --text-dim: #9ca3af; }
+        body { font-family: 'Inter', sans-serif; background: radial-gradient(circle at top right, #1e1b4b, #030712); color: white; min-height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -1px; margin: 0; background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header p { color: var(--text-dim); font-size: 0.8rem; margin-top: 8px; text-transform: uppercase; letter-spacing: 2px; }
-        nav { display: flex; justify-content: center; background: var(--glass); backdrop-filter: blur(12px); border: 1px solid var(--border); padding: 4px; border-radius: 12px; margin-bottom: 24px; width: 100%; max-width: 550px; }
-        .nav-btn { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-dim); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: 0.3s; text-align: center; display: flex; align-items: center; justify-content: center; }
-        .nav-btn.active { background: rgba(255,255,255,0.05); color: white; }
-        .status-bar { width: 100%; max-width: 550px; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 20px; padding: 0 10px; box-sizing: border-box; }
+        .header h1 { font-size: 2.2rem; font-weight: 700; background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+        nav { display: flex; width: 100%; max-width: 550px; background: var(--glass); border: 1px solid var(--border); padding: 4px; border-radius: 12px; margin-bottom: 20px; box-sizing: border-box; }
+        .nav-btn { flex: 1; padding: 12px; border: none; background: transparent; color: var(--text-dim); border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.3s; }
+        .nav-btn.active { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); }
+        .status-bar { width: 100%; max-width: 550px; display: flex; justify-content: space-between; font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 10px; }
         .dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; background: #374151; margin-right: 6px; }
         .dot.online { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-        .main-container { width: 100%; max-width: 550px; }
-        .view { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 2.5rem; border-radius: 20px; display: none; animation: fadeIn 0.4s ease-out; }
+        .view { background: var(--glass); border: 1px solid var(--border); padding: 2.5rem; border-radius: 20px; display: none; width: 550px; box-sizing: border-box; animation: fadeIn 0.4s; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        label { display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-top: 15px; }
-        input { width: 100%; padding: 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; color: white; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; margin-top: 10px; color: white; }
+        label { display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; margin: 15px 0 8px 0; }
+        input { width: 100%; padding: 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; color: white; font-family: 'JetBrains Mono'; outline: none; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: transform 0.1s; text-transform: uppercase; font-size: 0.8rem; color: white; margin-top: 20px; }
+        button:active { transform: scale(0.97); }
         .btn-purple { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
         .btn-green { background: linear-gradient(135deg, #10b981, #059669); }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dim); font-size: 0.7rem; }
-        table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+        .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626) !important; padding: 6px 12px !important; width: auto !important; margin: 0 !important; font-size: 0.6rem !important; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { text-align: left; font-size: 0.7rem; color: var(--text-dim); padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-        td { padding: 12px 0; font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: 'JetBrains Mono', monospace; }
+        td { padding: 12px 0; font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: 'JetBrains Mono'; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>SECURE EXCHANGE</h1>
-        <p>Hardware-Verified Entropy Pipeline</p>
-    </div>
+    <div class="header"><h1>SECURE EXCHANGE</h1><p>Hardware-Verified Entropy Pipeline</p></div>
     <nav>
         <button class="nav-btn active" id="tab-receiver" onclick="switchView('receiver')">UNLOCK</button>
         <button class="nav-btn" id="tab-admin" onclick="switchView('admin')">ADMIN</button>
@@ -51,29 +45,21 @@
     </div>
     <div class="main-container">
         <div id="view-receiver" class="view active">
-            <label>Access Identifier</label>
-            <input type="text" id="fileId" placeholder="E.G. JI7XIR">
-            <label>Exchange Token</label>
-            <input type="password" id="apiToken" placeholder="••••••••">
-            <button class="btn-green" onclick="handleHandshake()">Initialize Restoration</button>
+            <label>Access Identifier</label><input type="text" id="fileId" placeholder="E.G. JI7XIR">
+            <label>Exchange Token</label><input type="password" id="apiToken" placeholder="••••••••">
+            <button class="btn-green" id="handshake-btn" onclick="handleHandshake()">Initialize Restoration</button>
             <div id="unlockStep2" style="display:none; margin-top:30px; padding-top:20px; border-top: 1px solid var(--border);">
-                <label>Encrypted Data Payload (.quantum)</label>
-                <input type="file" id="receiverFile">
-                <button class="btn-green" onclick="runDecryption()">Restore Original Data</button>
+                <label>Encrypted Data Payload (.quantum)</label><input type="file" id="receiverFile">
+                <button class="btn-green" id="decrypt-btn" onclick="runDecryption()">Restore Original Data</button>
             </div>
         </div>
         <div id="view-admin" class="view">
-            <label>Payload Selection</label>
-            <input type="file" id="adminFile">
-            <label>Master Authorization</label>
-            <input type="password" id="adminToken" placeholder="Vault Access Key">
-            <button class="btn-purple" onclick="runEncryption()">Secure Payload</button>
-            <h3 style="margin-top:40px; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Active Vault Index</h3>
-            <table>
-                <thead><tr><th>ID</th><th>EXT</th><th>DATE</th><th style="text-align:right">ACTION</th></tr></thead>
-                <tbody id="vaultTable"></tbody>
-            </table>
-            <button class="btn-outline" style="margin-top:15px;" onclick="refreshVaultList()">Sync With Vault</button>
+            <label>Payload Selection</label><input type="file" id="adminFile">
+            <label>Master Authorization</label><input type="password" id="adminToken" placeholder="Vault Access Key">
+            <button class="btn-purple" id="encrypt-btn" onclick="runEncryption()">Secure Payload</button>
+            <h3 style="margin-top:40px; font-size: 0.7rem; color: var(--text-dim);">ACTIVE VAULT INDEX</h3>
+            <table><thead><tr><th>ID</th><th>EXT</th><th>DATE</th><th style="text-align:right">ACTION</th></tr></thead><tbody id="vaultTable"></tbody></table>
+            <button class="btn-outline" id="sync-btn" onclick="refreshVaultList()">Sync With Vault</button>
         </div>
     </div>
 <script>
@@ -100,59 +86,107 @@
             document.getElementById('hw-sample').innerText = d.sample ? d.sample.substring(0,8) : "----";
         } catch(e) { document.getElementById('hw-status').innerText = "OFFLINE"; }
     }, 3000);
+
     async function refreshVaultList() {
-        const t = document.getElementById('adminToken').value; if(!t) return;
+        const btn = document.getElementById('sync-btn');
+        const t = document.getElementById('adminToken').value; 
+        const b = document.getElementById('vaultTable');
+
+        // FIX 1: Alert if no password is typed
+        if(!t) {
+            alert("⚠️ Please enter your Master Authorization Key to view the vault.");
+            return;
+        }
+
+        btn.innerText = "SYNCING...";
         try {
             const r = await fetch('/vault/list', { headers: { 'x-api-token': t } });
+            
+            // FIX 2: Clear table if unauthorized and stop
+            if(!r.ok) {
+                b.innerHTML = "<tr><td colspan='4' style='text-align:center; color:var(--red); padding:20px;'>Unauthorized: Incorrect Master Key</td></tr>";
+                btn.innerText = "ACCESS DENIED";
+                return;
+            }
+
             const d = await r.json();
-            const b = document.getElementById('vaultTable'); b.innerHTML = "";
-            Object.keys(d).reverse().forEach(id => {
-                const date = d[id].timestamp ? new Date(d[id].timestamp).toLocaleDateString() : "---";
-                b.innerHTML += `<tr><td style="color:var(--purple); font-weight:700;">${id}</td><td>.${d[id].extension}</td><td style="color:var(--text-dim); font-size:0.7rem;">${date}</td><td style="text-align:right;"><button class="btn-outline" style="color:var(--red); border-color:rgba(239,68,68,0.2); width:auto; padding:4px 8px;" onclick="revokeId('${id}')">REVOKE</button></td></tr>`;
-            });
-        } catch(e) {}
+            b.innerHTML = "";
+            const keys = Object.keys(d);
+            if(keys.length === 0) {
+                b.innerHTML = "<tr><td colspan='4' style='text-align:center; color:var(--text-dim); padding:20px;'>Vault is empty.</td></tr>";
+            } else {
+                keys.reverse().forEach(id => {
+                    const date = d[id].timestamp ? new Date(d[id].timestamp).toLocaleDateString() : "---";
+                    b.innerHTML += `<tr><td style="color:var(--purple); font-weight:700;">${id}</td><td>.${d[id].extension || 'bin'}</td><td>${date}</td><td style="text-align:right"><button class="btn-red" onclick="revokeId('${id}')">REVOKE</button></td></tr>`;
+                });
+            }
+            btn.innerText = "VAULT SYNCED";
+        } catch(e) { 
+            btn.innerText = "OFFLINE"; 
+            b.innerHTML = "<tr><td colspan='4' style='text-align:center; color:var(--red); padding:20px;'>Server Connection Failed</td></tr>";
+        }
+        finally { setTimeout(() => { btn.innerText = "SYNC WITH VAULT"; }, 1500); }
     }
+
+    async function handleHandshake() {
+        const btn = document.getElementById('handshake-btn');
+        const i = document.getElementById('fileId').value.toUpperCase(), t = document.getElementById('apiToken').value;
+        if(!i || !t) return alert("Required: ID + Token");
+        try {
+            const r = await fetch(`/release/${i}`, { headers: { 'x-api-token': t } });
+            const d = await r.json();
+            if(r.ok) { activeKey = d.key; activeExt = d.extension; document.getElementById('unlockStep2').style.display = 'block'; btn.innerText = "VERIFIED"; }
+            else alert("Handshake Denied: Invalid Access Token");
+        } catch(e) { alert("Network Error"); }
+    }
+
     async function revokeId(id) {
         const t = document.getElementById('adminToken').value;
-        if(!confirm(`Delete record ${id}?`)) return;
-        await fetch(`/vault/revoke/${id}`, { method: 'DELETE', headers: { 'x-api-token': t } });
-        refreshVaultList();
+        if(!confirm(`Permanent Deletion: ${id}?`)) return;
+        const r = await fetch(`/vault/revoke/${id}`, { method: 'DELETE', headers: { 'x-api-token': t } });
+        if(r.ok) refreshVaultList();
+        else alert("Revoke Failed: Master Key Mismatch");
     }
+
     async function runEncryption() {
+        const btn = document.getElementById('encrypt-btn');
         const f = document.getElementById('adminFile').files[0], t = document.getElementById('adminToken').value;
-        if(!f || !t) return alert("Required: File + Token");
-        const res = await fetch('/request-keys', { headers: { 'x-api-token': t } });
-        const s = await res.json();
-        const reader = new FileReader();
-        reader.onload = async function() {
-            const k = CryptoJS.enc.Base64.parse(b64url(s.key));
-            const sk = CryptoJS.lib.WordArray.create(k.words.slice(0, 4));
-            const ek = CryptoJS.lib.WordArray.create(k.words.slice(4, 8));
-            const h = CryptoJS.enc.Hex.parse("80").concat(CryptoJS.lib.WordArray.create([0, Math.floor(Date.now()/1000)], 8)).concat(CryptoJS.lib.WordArray.random(16));
-            const c = CryptoJS.AES.encrypt(CryptoJS.lib.WordArray.create(new Uint8Array(reader.result)), ek, { iv: h.clone().words.slice(4, 8), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
-            const sig = h.concat(c.ciphertext);
-            const final = sig.concat(CryptoJS.HmacSHA256(sig, sk));
-            await fetch('/vault/commit', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-token': t }, body: JSON.stringify({ file_id: s.file_id, key: s.key, extension: f.name.split('.').pop(), timestamp: new Date().toISOString() }) });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([CryptoJS.enc.Base64.stringify(final).replace(/\+/g, '-').replace(/\//g, '_')], {type:'text/plain'})); a.download = `${f.name}.quantum`; a.click();
-            refreshVaultList();
-        };
-        reader.readAsArrayBuffer(f);
+        if(!f || !t) return alert("File + Token Required");
+        btn.innerText = "SECURING..."; btn.disabled = true;
+        try {
+            const res = await fetch('/request-keys', { headers: { 'x-api-token': t } });
+            if(!res.ok) throw new Error();
+            const s = await res.json();
+            const reader = new FileReader();
+            reader.onload = async function() {
+                const k = CryptoJS.enc.Base64.parse(b64url(s.key));
+                const sk = CryptoJS.lib.WordArray.create(k.words.slice(0, 4));
+                const ek = CryptoJS.lib.WordArray.create(k.words.slice(4, 8));
+                const h = CryptoJS.enc.Hex.parse("80").concat(CryptoJS.lib.WordArray.create([0, Math.floor(Date.now()/1000)], 8)).concat(CryptoJS.lib.WordArray.random(16));
+                const c = CryptoJS.AES.encrypt(CryptoJS.lib.WordArray.create(new Uint8Array(reader.result)), ek, { iv: h.clone().words.slice(4, 8), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+                const sig = h.concat(c.ciphertext);
+                const final = sig.concat(CryptoJS.HmacSHA256(sig, sk));
+                await fetch('/vault/commit', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-token': t }, body: JSON.stringify({ file_id: s.file_id, key: s.key, extension: f.name.split('.').pop() }) });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([CryptoJS.enc.Base64.stringify(final).replace(/\+/g, '-').replace(/\//g, '_')], {type:'text/plain'})); a.download = f.name + ".quantum"; a.click();
+                btn.innerText = "SUCCESS"; refreshVaultList();
+            };
+            reader.readAsArrayBuffer(f);
+        } catch(e) { btn.innerText = "AUTH FAILED"; alert("Encryption Denied: Incorrect Master Key"); }
+        finally { setTimeout(() => { btn.innerText = "SECURE PAYLOAD"; btn.disabled = false; }, 2000); }
     }
-    async function handleHandshake() {
-        const i = document.getElementById('fileId').value.toUpperCase(), t = document.getElementById('apiToken').value;
-        const r = await fetch(`/release/${i}`, { headers: { 'x-api-token': t } });
-        const d = await r.json();
-        if(r.ok) { activeKey = d.key; activeExt = d.extension; document.getElementById('unlockStep2').style.display = 'block'; }
-    }
+
     function runDecryption() {
-        const r = new FileReader();
+        const btn = document.getElementById('decrypt-btn');
+        const r = new FileReader(); btn.innerText = "RESTORING...";
         r.onload = function() {
             try {
                 const tH = CryptoJS.enc.Base64.parse(r.result.trim().replace(/-/g,'+').replace(/_/g,'/')).toString(CryptoJS.enc.Hex);
                 const kH = CryptoJS.enc.Base64.parse(b64url(activeKey)).toString(CryptoJS.enc.Hex);
                 const dec = CryptoJS.AES.decrypt({ ciphertext: CryptoJS.enc.Hex.parse(tH.substring(50, tH.length - 64)) }, CryptoJS.enc.Hex.parse(kH.substring(32, 64)), { iv: CryptoJS.enc.Hex.parse(tH.substring(18, 50)), mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
                 const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([waToU8(dec)], {type:"application/octet-stream"})); a.download = `restored.${activeExt}`; a.click();
-            } catch(e) { alert("ERROR"); }
+                btn.innerText = "SUCCESS";
+            } catch(e) { alert("Decryption Failed: File Corrupt or Token Mismatch"); btn.innerText = "FAILED"; }
+            finally { setTimeout(() => btn.innerText = "RESTORE ORIGINAL DATA", 2000); }
         };
         r.readAsText(document.getElementById('receiverFile').files[0]);
     }
