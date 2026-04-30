@@ -13,3 +13,14 @@ quantum_vault.json
 __pycache__/
 *.pyc
 vault/
+# Environments
+.env
+qrng_env/
+__pycache__/
+
+# Databases
+vault/
+quantum_vault.json
+
+# Hardware Logs
+*.log
