@@ -1,10 +1,7 @@
 import serial
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-# Update to ACM1 if needed!
 ser = serial.Serial('/dev/ttyACM1', 115200)
 size = 128 
 grid = np.zeros((size, size))
@@ -12,6 +9,7 @@ grid = np.zeros((size, size))
 plt.ion()
 fig, ax = plt.subplots()
 img = ax.imshow(grid, cmap='magma', vmin=0, vmax=255)
+plt.title("Live Quantum Entropy Stream")
 
 try:
     while True:
