@@ -1,89 +1,54 @@
-# SECURE EXCHANGE (v4.0)
+k# PhyRand: Physical Entropy and Zero-Knowledge Vault
 
-This major update transitions the project from a terminal-based tool to a unified web appliance.
-
-## Version 4.0: Secure Exchange Release
-
-### Unified Dashboard Architecture
-- Persona Separation: The interface is divided into a dedicated Unlock view for receivers and an Admin Tools view for vault management.
-- Glassmorphism UI: Implemented a modern design language using deep-space gradients, glass-style transparency, and high-legibility typography (Inter and JetBrains Mono).
-
-### Hardware-Verified Entropy Pipeline
-- Real-Time Heartbeat: The dashboard features a live hardware status monitor and entropy seed preview sourced directly from the STM32 serial stream.
-- Quantum Seeded Identifiers: File IDs and encryption keys are generated using the hardware entropy source, ensuring cryptographic-grade randomness for every session.
-
-### Advanced Binary Vaulting
-- Local Client-Side Encryption: Encryption and decryption logic now occurs in the browser. Plaintext data remains local, while the server only manages hardware keys and metadata.
-- Universal Binary Support: Fully validated for securing high-density binary files including images and videos.
-- Metadata Persistence: The system now automatically captures and restores original file extensions and encryption timestamps during the restoration process.
-- Vault Revocation Suite: Integrated administrative controls to synchronize the active vault index and revoke access identifiers in real time.
-
-### Diagnostic Monitoring
-- System Stats Endpoint: Added a dedicated /stats API endpoint for comprehensive hardware and vault health reporting in JSON format.
+**PhyRand** is a hardware-rooted cryptographic appliance designed to bridge the gap between physical phenomena and digital security. It utilizes Zener diode avalanche noise to generate non-deterministic AES-256 keys.
 
 ---
 
-# Quantum Random Number Generator (v3.0)
+## Technical Overview: True Randomness
+Software-based random number generators (PRNGs) are inherently deterministic. PhyRand mitigates this risk by employing an Entropy Pipeline sourced from physical noise:
 
-A hardware-driven TRNG and Automated Key Authority.
+* Source: Zener diode avalanche breakdown (Quantum-level chaotic fluctuations).
+* Processing: Real-time Von Neumann debiasing and XOR whitening performed on-chip via STM32.
+* Validation: Achieves a verified entropy density of 7.9997 bits/byte.
 
-## Version 3.0: Automated API Handshake
-This version transforms the vault into a network-accessible service:
-- Persistent Hardware Path: Uses Linux udev rules to map the STM32 to /dev/quantum_qrng.
-- FastAPI Backend: A high-performance REST API that acts as a Key Authority.
-- Automated Handshake: The auto_unlock.py client automatically requests keys via HTTP, removing manual entry.
-- Quantum Entropy Stats: Live hardware health checks served via JSON.
+---
 
 ## System Architecture
-1. Physics: Zener avalanche noise (STM32 v3.0 Immortal Firmware).
-2. Logic: Python FastAPI server managing the hardware stream.
-3. Transport: AES-256 (Fernet) encrypted files with hardware-seeded keys.
+PhyRand operates as a decentralized Key Authority. The system architecture ensures zero-knowledge encryption, where plaintext data remains local to the client environment.
 
-## Project Structure
-- /firmware: STM32 source code.
-- qrng_api.py: The Key Authority server.
-- auto_unlock.py: The automated client decryptor.
-- /vault: Secure local key storage (Git-ignored).
-
-## How to Run
-1. Connect hardware. Verify /dev/quantum_qrng exists.
-2. Run server: python3 qrng_api.py
-3. Unlock file: python3 auto_unlock.py
+1. Hardware Layer: Zener Core, Pre-Amplifier, and Main Amplifier stages.
+2. Embedded Layer: STM32 ADC sampling and high-speed USB Serial data streaming.
+3. Backend Layer: FastAPI Key Authority mapping the hardware entropy stream to a RESTful service.
+4. Client Layer: Browser-based AES-256 (Fernet) encryption suite.
 
 ---
 
-## Version 2.0: Quantum Lockbox
-- **Feature:** Hardware-encrypted file vaulting.
-- **Security:** Uses 256-bit AES keys seeded by live Zener noise ($2^{256}$ complexity).
-- **Workflow:** Sender locks a file using `quantum_vault.py`, receiver unlocks using `receiver_decrypt.py` + shared Key ID.
+## Repository Structure
+* /api: FastAPI Key Authority server implementation.
+* /firmware: STM32 source code and pre-compiled binaries.
+* /scripts: Python utilities for entropy analysis and automated vault management.
+* /data: Raw entropy captures and statistical validation records.
+* /vault: Secure local storage for encrypted assets and session metadata.
 
 ---
 
-# Quantum Random Number Generator (v1.0)
-A hardware-based TRNG using Zener avalanche noise, processed via STM32, and validated for cryptographic use.
+## Installation and Usage
 
-## Features
-- **Entropy Source:** Zener diode avalanche breakdown.
-- **Processing:** Von Neumann debiasing & XOR whitening (STM32F401RE).
-- **Quality:** 7.9997 bits/byte entropy (verified via `ent` suite).
-- **Apps:** Live entropy monitor and One-Time Pad (OTP) vault.
+### 1. Key Authority Initialization
+Connect the STM32 hardware and ensure the device is mapped to /dev/quantum_qrng.
+```bash
+# Install required dependencies
+pip install -r requirements.txt
 
-## Project Structure
-- `/firmware`: STM32 source code.
-- `/scripts`: Python tools for analysis and encryption.
-- `/data`: Sample entropy captures.
+# Execute the FastAPI server
+python3 api/qrng_api.py
+```
 
+### 2. File Encryption
+Utilize the CLI utility for local file security:
+```bash
+python3 scripts/quantum_vault.py <filename>
+```
 ---
-
-# QRNG-Project
-A Quantum TRNG harvesting entropy from Zener avalanche noise. Processed via STM32 firmware (Von Neumann/XOR) to achieve 7.9997 bits/byte entropy. Includes a Python real-time monitor and a One-Time Pad encryption vault. Validated for cryptographic-grade security using industry-standard statistical analysis. Perfect for secure data generation.
-## Hardware Architecture: Quantum Entropy Source
-The system harvests microscopic fluctuations from a physical source to ensure non-deterministic key generation.
-
-### Signal Flow
-```mermaid
-graph LR
-    A[Zener Avalanche Core] -->|Raw Noise| B[Stage 1: Pre-Amp]
-    B -->|Boosted Signal| C[Stage 2: Main Amp]
-    C -->|Analog Output| D[STM32 ADC Sampling]
-    D -->|USB Serial| E[FastAPI Controller]
+**Author: Kavin-Re**
+*Electronics Engineering | Embedded Systems | Applied Cryptography*
