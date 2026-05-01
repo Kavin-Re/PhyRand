@@ -1,4 +1,4 @@
-k# PhyRand: Physical Entropy and Zero-Knowledge Vault
+# PhyRand: Physical Entropy and Zero-Knowledge Vault
 
 **PhyRand** is a hardware-rooted cryptographic appliance designed to bridge the gap between physical phenomena and digital security. It utilizes Zener diode avalanche noise to generate non-deterministic AES-256 keys.
 
