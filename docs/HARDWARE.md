@@ -1,6 +1,6 @@
-# Hardware Specification: The Avalanche Core
+# Hardware Specification: The Zener Noise Core
 
-This document details the Analog Front-End (AFE) responsible for harvesting and conditioning quantum noise for the Secure Exchange project.
+This document details the Analog Front-End (AFE) responsible for harvesting and conditioning reverse-bias breakdown noise for the Secure Exchange project.
 
 ## 1. Schematic Overview
 The circuit is designed as a cascading waterfall. The Zener diode creates a microscopic "splash" of noise, which is captured and amplified through two BJT stages until it is large enough for the microcontroller to "hear."
@@ -34,7 +34,7 @@ The following table documents the critical hurdles cleared during the hardware a
 | **Zener** | No Ignition | 5.1V Zener exceeded 3.3V supply. | Swapped to 3V Zener. |
 | **Amp** | Stage 1 Saturation | Base current too high. | Increased Bias to 750kΩ. |
 | **Amp** | Stage 2 Cut-off | Emitter was "floating." | Fixed GND connection on Row 52. |
-| **Verification** | 0.0V AC Reading | Multimeter too slow for noise. | Used "Human Antenna" test. |
+| **Verification** | 0.0V AC Reading | Multimeter too slow for noise. | Used "Human Antenna" test. Note: this is not a valid signal characterization method. The analog noise signal was not characterized with an oscilloscope. Entropy validation was performed digitally on firmware output via the ent suite, not on the analog signal directly. |
 
 ## 4. Digital Sampling Path
-The conditioned noise exits the amplifier at **Row 50** and enters the **STM32 at Pin PA0**. The firmware then applies Von Neumann debiasing and XOR whitening to ensure a final entropy of **7.9997 bits/byte**.
+The conditioned noise exits the amplifier at **Row 50** and enters the **STM32 at Pin PA0**. The firmware then applies Von Neumann debiasing to produce an entropy density of **7.9997 bits/byte** (ent suite; NIST SP 800-22 pending on corrected firmware output).

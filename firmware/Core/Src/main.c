@@ -2,7 +2,7 @@
 /**
   ******************************************************************************
   * @file           : main.c
-  * @brief          : QRNG Production Code with XOR Whitening
+  * @brief          : QRNG Production Code with Von Neumann Debiasing
   * @author         : Kavin
   ******************************************************************************
   */
@@ -18,7 +18,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -26,7 +25,6 @@ uint8_t bit_buffer[2];     // Von Neumann pair buffer
 uint8_t current_pair = 0;   // Pair state tracker
 uint8_t result_byte = 0;    // Assembly byte
 uint8_t bit_count = 0;      // Bit assembly counter
-uint8_t last_byte = 0;      // NEW: Stores previous byte for XOR whitening
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -34,7 +32,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_I2C1_Init(void);
 
 /**
   * @brief  The application entry point.
@@ -48,10 +45,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_ADC1_Init();
-  MX_I2C1_Init();
 
   /* USER CODE BEGIN 2 */
-  HAL_ADC_Start(&hadc1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -64,6 +59,7 @@ int main(void)
       if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK)
       {
           uint32_t raw_val = HAL_ADC_GetValue(&hadc1);
+          HAL_ADC_Stop(&hadc1);
           uint8_t raw_bit = raw_val & 0x01;
 
           // 2. Von Neumann Algorithm
@@ -75,17 +71,14 @@ int main(void)
               current_pair = 0;
 
               if (bit_buffer[0] != bit_buffer[1]) {
+                  // Output bit_buffer[0] (first bit of differing pair) per Von Neumann convention
                   result_byte = (result_byte << 1) | bit_buffer[0];
                   bit_count++;
 
                   if (bit_count >= 8) {
-                      // 3. XOR Whitening: Kill the bias from the Drunkard's Walk
-                      uint8_t whitened_byte = result_byte ^ last_byte;
-                      last_byte = result_byte; // Store raw result for next round
-
-                      // 4. Transmit the Pure Random Byte
+                      // 3. Transmit the debiased byte
                       __HAL_UART_CLEAR_OREFLAG(&huart2);
-                      HAL_UART_Transmit(&huart2, &whitened_byte, 1, 10);
+                      HAL_UART_Transmit(&huart2, &result_byte, 1, 10);
 
                       result_byte = 0;
                       bit_count = 0;
@@ -164,28 +157,8 @@ static void MX_ADC1_Init(void)
 
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-/**
-  * @brief I2C1 Initialization Function
-  */
-static void MX_I2C1_Init(void)
-{
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
   {
     Error_Handler();
   }
