@@ -1,26 +1,31 @@
-qrng_env/
+# Python
 __pycache__/
 *.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+qrng_env/
+.ruff_cache/
+.mypy_cache/
+
+# Secrets and key material - never commit these
+.env
+vault/
+quantum_vault.json
+*.quantum
+
+# Captures (large); the one reference capture is kept on purpose
 *.bin
+!data/random_whitened.bin
+*.log
+
+# STM32CubeIDE build output
 .settings/
 Debug/
 Release/
-# Quantum Vault Private Data
-vault/
-*.quantum
-quantum_vault.json
-.env
-__pycache__/
-*.pyc
-vault/
-# Environments
-.env
-qrng_env/
-__pycache__/
 
-# Databases
-vault/
-quantum_vault.json
-
-# Hardware Logs
-*.log
+# Node tooling (not part of PhyRand)
+node_modules/
+package-lock.json

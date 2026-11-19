@@ -1,6 +1,6 @@
-fastapi
-uvicorn
-pyserial
-numpy
-python-dotenv
-cryptography
+# Runtime dependencies for the server, CLI and scripts.
+# Equivalent to: pip install -e ".[server]"
+cryptography>=42
+pyserial>=3.5
+fastapi>=0.110
+uvicorn>=0.29

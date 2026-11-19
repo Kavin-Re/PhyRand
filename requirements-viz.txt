@@ -1,0 +1,3 @@
+# Optional: only for scripts/live_view.py and `scripts/analyze.py --plot`.
+numpy
+matplotlib

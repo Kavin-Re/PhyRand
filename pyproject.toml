@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phyrand"
+version = "0.2.0"
+description = "Zener-noise entropy source on an STM32, with health-tested key generation and a key-escrow API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Kavin K K" }]
+keywords = ["trng", "entropy", "stm32", "hardware-security", "nist-sp-800-90b", "fernet"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security :: Cryptography",
+    "Topic :: System :: Hardware",
+]
+dependencies = [
+    "cryptography>=42",
+    "pyserial>=3.5",
+]
+
+[project.optional-dependencies]
+server = ["fastapi>=0.110", "uvicorn>=0.29"]
+viz = ["numpy", "matplotlib"]
+dev = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27", "ruff", "black"]
+
+[project.scripts]
+phyrand = "phyrand.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Kavin-Re/PhyRand"
+
+[tool.setuptools]
+packages = ["phyrand"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["firmware"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "SIM", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests use fixed fake tokens, seeded PRNGs as stand-in noise and a loopback server.
+"tests/*" = ["S105", "S106", "S311", "S310"]
+"scripts/*" = ["E402"]
