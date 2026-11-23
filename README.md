@@ -1,6 +1,12 @@
 # PhyRand
 
-**A Zener-noise entropy source on an STM32, a health-tested key-generation pipeline, and a key-escrow service with client-side file encryption.**
+> **Status: frozen, 2026-11-23,** apart from one experiment. **Not done:** the control that shows where the
+> randomness comes from. It needs a raw-sample firmware mode first (today's firmware streams only debiased
+> bytes), then raw captures with the Zener fitted, with it removed, and with the ADC input alone, about four
+> bench sessions. Until then it is not known whether the diode contributes at all, or only the ADC's own noise
+> and interference, so the source is **unvalidated**. That experiment is the only open item.
+
+**A Zener-noise entropy source on an STM32 (unvalidated source), a health-tested key-generation pipeline, and a key-escrow service with client-side file encryption.**
 
 [![CI](https://github.com/Kavin-Re/PhyRand/actions/workflows/ci.yml/badge.svg)](https://github.com/Kavin-Re/PhyRand/actions/workflows/ci.yml)
 ![Python 3.10 | 3.11 | 3.12](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
@@ -70,11 +76,14 @@ are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 All figures come from the one capture in this repository,
 [`data/random_whitened.bin`](data/README.md) (1,000,000 bytes of debiased
 output), and are reproducible with `python -m phyrand analyze data/random_whitened.bin`.
-The test suite pins them so this table cannot drift from the data.
+The test suite pins them so this table cannot drift from the data. The
+figures were computed by that command (the repository's own analysis), not
+by the separate `ent` program; the Shannon figure is the same statistic `ent`
+reports.
 
 | Statistic | Measured | Ideal | Verdict |
 | :--- | :--- | :--- | :--- |
-| Shannon entropy (`ent`) | 7.9997 bits/byte | 8 | Close to flat histogram |
+| Shannon entropy of the byte histogram | 7.9997 bits/byte | 8 | Close to flat histogram |
 | MCV min-entropy estimate (SP 800-90B 6.3.1) | 7.87 bits/byte | 8 | One estimator, conditioned data only |
 | Chi-square, 255 d.o.f. | 331.58 (p = 0.0009) | p not extreme | **Fails** at 1 % |
 | Ones fraction | 0.499225 (z = -4.4) | 0.5 | **Fails** monobit |
@@ -82,8 +91,9 @@ The test suite pins them so this table cannot drift from the data.
 | RCT / APT health tests | 0 failures | 0 | Pass |
 
 The honest reading: the output *looks* random at a glance, and the
-often-quoted 7.9997 bits/byte is real, but a million samples are enough to
-expose a residual bias. It sits almost entirely in the first bit of every
+7.9997 bits/byte is real, but the same capture fails chi-square
+(331.58 with 255 degrees of freedom, p = 0.0009): a million samples are enough
+to expose a residual bias. It sits almost entirely in the first bit of every
 byte (z = -7.8), which points at the firmware's sampling loop rather than the
 diode ([analysis](data/README.md), [firmware review](firmware/README.md)).
 This is exactly why the host never uses device bytes as keys directly.
@@ -240,6 +250,10 @@ docs/         Architecture, threat model, hardware notes, photos
 
 ## Roadmap
 
+Frozen on 2026-11-23. Only the control experiment (a raw-sample firmware
+mode, then captures with the Zener, without it, and with the ADC alone) may
+still be done; the rest is not scheduled.
+
 - [ ] Control experiment: capture with the Zener removed, to measure what the ADC alone contributes
 - [ ] Oscilloscope / spectrum characterisation of the analogue noise
 - [ ] Firmware: timer-triggered ADC with DMA, raw-sample streaming mode, on-chip health tests, framed output
@@ -254,7 +268,6 @@ docs/         Architecture, threat model, hardware notes, photos
 
 **Kavin K K** ([@Kavin-Re](https://github.com/Kavin-Re)) ·
 [LinkedIn](https://www.linkedin.com/in/kavinkk-vlsi-embedded)
-B.Tech Electronics Engineering (VLSI), Rashtriya Raksha University.
 Embedded systems, hardware security, RTOS, applied cryptography.
 
 Released under the [MIT License](LICENSE).

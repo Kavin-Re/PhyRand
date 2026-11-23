@@ -101,9 +101,10 @@ conversion, applies Von Neumann debiasing and streams the resulting bytes over
 the ST-LINK virtual COM port at 115200 baud. See
 [`firmware/README.md`](../firmware/README.md).
 
-A 1 MB capture of that stream measures 7.9997 bits/byte Shannon entropy with
-`ent`. That and the other statistics, including the tests the capture fails,
-are in [`data/README.md`](../data/README.md).
+A 1 MB capture of that stream has a Shannon entropy of 7.9997 bits/byte
+(computed with `python -m phyrand analyze`), and the same capture fails
+chi-square (p = 0.0009). That and the other statistics are in
+[`data/README.md`](../data/README.md). None of them validates the source.
 
 ## 7. Known limitations of the hardware
 

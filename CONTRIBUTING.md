@@ -1,6 +1,6 @@
 # Contributing to PhyRand
 
-Thanks for your interest. PhyRand: Zener-noise TRNG firmware (STM32F401RE), FastAPI key authority and file vault.
+Thanks for your interest. PhyRand: Zener-noise entropy source, not validated (STM32F401RE firmware), FastAPI key authority and file vault.
 
 ## Getting started
 
